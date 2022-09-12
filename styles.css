@@ -6,3 +6,12 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+
+[data-type="time-markers-view-type"] .view-content h4 {
+	margin-top: 0;
+	margin-bottom: 1em;
+}
+
+[data-type="time-markers-view-type"] .view-content li::marker {
+	content:  "⏰ ";
+}
