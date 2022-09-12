@@ -21,20 +21,22 @@ export class TimeMarkersView extends ItemView {
 		container.createEl("h4", { text: "Time Markers" }); 
 	}
 
-	jumpToLine(leafID, line, ch){
+	jumpToLine(leafID: string, line: number, ch: number){
+		// @ts-ignore
 		const editorObj=this.app.workspace.getLeafById(leafID).view.sourceMode.cmEditor;
 		editorObj.focus();
 		editorObj.setCursor({line: line, ch: ch});
 	}
 
 	async parseNote(){
-		window.APP = this.app; // ugly debug
 		await this.delay(100);
 		this.initView();
 
 		try {
 			const container = this.containerEl.children[1];
+			// @ts-ignore
 			const leafID = this.app.workspace.activeLeaf.id;
+			// @ts-ignore
 			const editorObj=this.app.workspace.activeLeaf.view.sourceMode.cmEditor;
 
 			const timeMarkers = [];
@@ -43,11 +45,6 @@ export class TimeMarkersView extends ItemView {
 				
 				const lineTimeMarkerMatch = lineText.match(/^[0-2]?[0-9]:([0-5][0-9]|XX)[\s-]+.*|.*[\s`-]+[0-2]?[0-9]:([0-5][0-9]|XX)[\s-`]+.*|.*[\s-]+[0-2]?[0-9]:([0-5][0-9]|XX)$/g); 
 				// `/TIME_ON_START_OF_LINE|TIME_IN_MIDDLE_OF_LINE|TIME_AT_END_OF_LINE/g``
-				// `TIME_...` is 24hrs time in HH:MM or H:MM form (where minutes can be XX) that is surrounded by one of following:
-				//   - whitespace 
-				//   - line start/end 
-				//   - backticks (`)
-				//   - dahses (-) - as in "10:00-10:30"
 
 				if (lineTimeMarkerMatch) {
 					const lineTimeMarker = lineTimeMarkerMatch[0]; // only first marker in line - this is opinionated assumption

@@ -1,7 +1,8 @@
 {
 	"name": "obsidian-time-markers",
-	"version": "0.0.1",
+	"version": "0.0.3",
 	"description": "Plugin for Obsidian (https://obsidian.md) that shows time markers from current note in sidebar",
+	"homepage": "https://github.com/danielskowronski/obsidian_time_markers",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
@@ -10,7 +11,8 @@
 	},
 	"keywords": [
 		"time",
-		"markers"
+		"markers",
+		"obsidian"
 	],
 	"author": "Daniel Skowroński <daniel@skowron.ski> (https://skowron.ski)",
 	"license": "BSD-3-Clause",
