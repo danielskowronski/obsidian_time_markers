@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting } from "obsidian";
+import { Plugin } from "obsidian";
 
 import { TimeMarkersView, VIEW_TYPE_TIMEMARKERS } from "./view";
 

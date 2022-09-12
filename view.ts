@@ -1,5 +1,4 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
-import { App, Plugin } from "obsidian";
 
 export const VIEW_TYPE_TIMEMARKERS = "time-markers-view-type";
 
@@ -19,29 +18,30 @@ export class TimeMarkersView extends ItemView {
 	initView(){
 		const container = this.containerEl.children[1];
 		container.empty();
-		container.createEl("h4", { text: "Time Markers" });
+		container.createEl("h4", { text: "Time Markers" }); 
 	}
 
 	jumpToLine(leafID, line, ch){
-		let editorObj=this.app.workspace.getLeafById(leafID).view.sourceMode.cmEditor;
+		const editorObj=this.app.workspace.getLeafById(leafID).view.sourceMode.cmEditor;
 		editorObj.focus();
 		editorObj.setCursor({line: line, ch: ch});
 	}
 
-	parseNote(){
+	async parseNote(){
 		window.APP = this.app; // ugly debug
+		await this.delay(100);
 		this.initView();
 
 		try {
 			const container = this.containerEl.children[1];
 			const leafID = this.app.workspace.activeLeaf.id;
-			let editorObj=this.app.workspace.activeLeaf.view.sourceMode.cmEditor;
+			const editorObj=this.app.workspace.activeLeaf.view.sourceMode.cmEditor;
 
-			let timeMarkers = [];
+			const timeMarkers = [];
 			for (let lineNum=0; lineNum<editorObj.lineCount(); lineNum++){
-				let lineText = editorObj.getLine(lineNum);
+				const lineText = editorObj.getLine(lineNum);
 				
-				let lineTimeMarkerMatch = lineText.match(/^[0-2]?[0-9]:([0-5][0-9]|XX)[\s\-]+.*|.*[\s\`\-]+[0-2]?[0-9]:([0-5][0-9]|XX)[\s\-\`]+.*|.*[\s\-]+[0-2]?[0-9]:([0-5][0-9]|XX)$/g); 
+				const lineTimeMarkerMatch = lineText.match(/^[0-2]?[0-9]:([0-5][0-9]|XX)[\s-]+.*|.*[\s`-]+[0-2]?[0-9]:([0-5][0-9]|XX)[\s-`]+.*|.*[\s-]+[0-2]?[0-9]:([0-5][0-9]|XX)$/g); 
 				// `/TIME_ON_START_OF_LINE|TIME_IN_MIDDLE_OF_LINE|TIME_AT_END_OF_LINE/g``
 				// `TIME_...` is 24hrs time in HH:MM or H:MM form (where minutes can be XX) that is surrounded by one of following:
 				//   - whitespace 
@@ -50,23 +50,23 @@ export class TimeMarkersView extends ItemView {
 				//   - dahses (-) - as in "10:00-10:30"
 
 				if (lineTimeMarkerMatch) {
-					let lineTimeMarker = lineTimeMarkerMatch[0]; // only first marker in line - this is opinionated assumption
-					let isCompletedTask = lineTimeMarker.match(/^- \[[\-xX]\]/);
+					const lineTimeMarker = lineTimeMarkerMatch[0]; // only first marker in line - this is opinionated assumption
+					const isCompletedTask = lineTimeMarker.match(/^- \[[-xX]\]/);
 					if (! isCompletedTask) {
-						let formattedText = lineTimeMarker.
+						const formattedText = lineTimeMarker.
 							replace(/([^0-9])([0-9]{1}):([0-9]{2})/g, "$10$2:$3"). // convert H:MM to HH:MM
 							replace(/^- /, "").replace(/^\[.\] /, ""). // remove task list prefixes (`- [ ] `)
-							replace(/\`/g, ""); // remove backticks
+							replace(/`/g, ""); // remove backticks
 						
-						let timeRaw = lineTimeMarker.match(/[0-9]{1,2}:([0-9]{2}|XX)/)[0];
-						let time = formattedText.match(/[0-9]{2}:([0-9]{2}|XX)/)[0];
+						const timeRaw = lineTimeMarker.match(/[0-9]{1,2}:([0-9]{2}|XX)/)[0];
+						const time = formattedText.match(/[0-9]{2}:([0-9]{2}|XX)/)[0];
 
 						let pos = lineTimeMarker.indexOf(timeRaw)+timeRaw.length;
 						if (pos<lineTimeMarker.length) { 
 							pos++; // only set cursor one character after time if time was not the last thing in line
 						}
 
-						let timeMarker = {
+						const timeMarker = {
 							leafID: leafID,
 							line: lineNum,
 							ch: pos,
@@ -79,7 +79,7 @@ export class TimeMarkersView extends ItemView {
 				}
 			}
 
-			let sortedTimeMarkers = timeMarkers.sort((a,b) => {
+			const sortedTimeMarkers = timeMarkers.sort((a,b) => {
 				if (a.time > b.time) {
 					return 1;
 				}
@@ -92,7 +92,7 @@ export class TimeMarkersView extends ItemView {
 			});
 
 			sortedTimeMarkers.forEach(function (timeMarker) {
-				let link = container.createEl("li", { }).
+				const link = container.createEl("li", { }).
 					createEl("a", { 
 						text: timeMarker.formattedText, 
 						href: "#",
@@ -109,7 +109,9 @@ export class TimeMarkersView extends ItemView {
 		}
 
 	}
-
+	delay(ms: number) {
+		return new Promise( resolve => setTimeout(resolve, ms) );
+	}
 	async onOpen() {
 		this.initView();
 
