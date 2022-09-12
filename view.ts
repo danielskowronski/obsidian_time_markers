@@ -29,22 +29,25 @@ export class TimeMarkersView extends ItemView {
 	}
 
 	parseNote(){
-		window.APP = this.app; /* ugly debug */
+		window.APP = this.app; // ugly debug
 		this.initView();
 
 		try {
 			const container = this.containerEl.children[1];
 			const leafID = this.app.workspace.activeLeaf.id;
-
 			let editorObj=this.app.workspace.activeLeaf.view.sourceMode.cmEditor;
 
-			let timeMarkers = {}
-
+			let timeMarkers = [];
 			for (let lineNum=0; lineNum<editorObj.lineCount(); lineNum++){
 				let lineText = editorObj.getLine(lineNum);
-				let lineTimeMarkerMatch = lineText.match(/^[0-2]?[0-9]:[0-5][0-9]\s+.*|.*\s+[0-2]?[0-9]:[0-5][0-9]\s+.*|.*\s+[0-2]?[0-9]:[0-5][0-9]$/g); 
+				
+				let lineTimeMarkerMatch = lineText.match(/^[0-2]?[0-9]:([0-5][0-9]|XX)[\s\-]+.*|.*[\s\`\-]+[0-2]?[0-9]:([0-5][0-9]|XX)[\s\-\`]+.*|.*[\s\-]+[0-2]?[0-9]:([0-5][0-9]|XX)$/g); 
 				// `/TIME_ON_START_OF_LINE|TIME_IN_MIDDLE_OF_LINE|TIME_AT_END_OF_LINE/g``
-				// `TIME_...` is 24hrs time in HH:MM or H:MM form surrouned by whitespace or line start/end
+				// `TIME_...` is 24hrs time in HH:MM or H:MM form (where minutes can be XX) that is surrounded by one of following:
+				//   - whitespace 
+				//   - line start/end 
+				//   - backticks (`)
+				//   - dahses (-) - as in "10:00-10:30"
 
 				if (lineTimeMarkerMatch) {
 					let lineTimeMarker = lineTimeMarkerMatch[0]; // only first marker in line - this is opinionated assumption
@@ -52,10 +55,11 @@ export class TimeMarkersView extends ItemView {
 					if (! isCompletedTask) {
 						let formattedText = lineTimeMarker.
 							replace(/([^0-9])([0-9]{1}):([0-9]{2})/g, "$10$2:$3"). // convert H:MM to HH:MM
-							replace(/^- /, "").replace(/^\[.\] /, ""); // remove task list prefixes (`- [ ] `)
+							replace(/^- /, "").replace(/^\[.\] /, ""). // remove task list prefixes (`- [ ] `)
+							replace(/\`/g, ""); // remove backticks
 						
-						let timeRaw = lineTimeMarker.match(/[0-9]{1,2}:[0-9]{2}/)[0];
-						let time = formattedText.match(/[0-9]{2}:[0-9]{2}/)[0];
+						let timeRaw = lineTimeMarker.match(/[0-9]{1,2}:([0-9]{2}|XX)/)[0];
+						let time = formattedText.match(/[0-9]{2}:([0-9]{2}|XX)/)[0];
 
 						let pos = lineTimeMarker.indexOf(timeRaw)+timeRaw.length;
 						if (pos<lineTimeMarker.length) { 
@@ -70,32 +74,44 @@ export class TimeMarkersView extends ItemView {
 							formattedText: formattedText,
 						}
 
-						timeMarkers[time] = timeMarker;
+						timeMarkers.push(timeMarker);
 					}
 				}
 			}
 
-			for (let [time, timeMarker] of Object.entries(timeMarkers)) {				
+			let sortedTimeMarkers = timeMarkers.sort((a,b) => {
+				if (a.time > b.time) {
+					return 1;
+				}
+
+				if (a.time < b.time) {
+					return -1;
+				}
+
+				return 0;
+			});
+
+			sortedTimeMarkers.forEach(function (timeMarker) {
 				let link = container.createEl("li", { }).
 					createEl("a", { 
 						text: timeMarker.formattedText, 
-						href: "#"
+						href: "#",
 					}
 				);
 
 				link.onClickEvent(() => {
-					this.jumpToLine(leafID, timeMarker.line, timeMarker.ch)
+					this.jumpToLine(leafID, timeMarker.line, timeMarker.ch);
 				});
-			}
+			});
 		}
 		catch (exc) {
-
+			console.error(exc);
 		}
 
 	}
 
 	async onOpen() {
-		this.parseNote();
+		this.initView();
 
 		this.registerEvent(this.app.workspace.on('file-open', () => {
 			this.parseNote();
