@@ -1,5 +1,5 @@
 import { ItemView, WorkspaceLeaf } from "obsidian";
-import { App } from "obsidian";
+import { App, Plugin } from "obsidian";
 
 export const VIEW_TYPE_TIMEMARKERS = "time-markers-view-type";
 
@@ -96,6 +96,13 @@ export class TimeMarkersView extends ItemView {
 
 	async onOpen() {
 		this.parseNote();
+
+		this.registerEvent(this.app.workspace.on('file-open', () => {
+			this.parseNote();
+		}));
+		this.registerEvent(this.app.workspace.on('editor-change', () => {
+			this.parseNote();
+		}));
 	}
 
 	async onClose() {
