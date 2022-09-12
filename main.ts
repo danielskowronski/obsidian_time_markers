@@ -3,8 +3,6 @@ import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Set
 import { TimeMarkersView, VIEW_TYPE_TIMEMARKERS } from "./view";
 
 export default class TimeMarkers extends Plugin {
-	settings: TimeMarkersSettings;
-
 	async onload() {
 		this.registerView(
 			VIEW_TYPE_TIMEMARKERS,

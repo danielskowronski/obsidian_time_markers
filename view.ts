@@ -102,7 +102,7 @@ export class TimeMarkersView extends ItemView {
 				link.onClickEvent(() => {
 					this.jumpToLine(leafID, timeMarker.line, timeMarker.ch);
 				});
-			});
+			}, this);
 		}
 		catch (exc) {
 			console.error(exc);
